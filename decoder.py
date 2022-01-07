@@ -9,7 +9,7 @@ from keras.models import Sequential
 from keras.layers.wrappers import Bidirectional
 from keras.preprocessing import sequence
 from keras.layers import LSTM, Embedding, TimeDistributed, Dense, RepeatVector, Activation, concatenate, Flatten, Merge
-
+import encoder
 import pandas as pd
 import glob
 
@@ -172,15 +172,51 @@ caption_model = Sequential([
 final_model = Sequential([
         Merge([image_model, caption_model], mode='concat', concat_axis=1),
         Bidirectional(LSTM(256, return_sequences=False)),
-        Dense(vocab_size),
+        Dense(int(vocab_size)),
         Activation('softmax')
     ])
 
 final_model.compile(loss='categorical_crossentropy', optimizer=RMSprop(), metrics=['accuracy'])
 
-final_model.summary()
+def train(epochs, times):
+    final_model.summary()
+    with open("wti_onehot.p", "wb") as encodedPickle:
+        pickle.dump(word2idx, encodedPickle)
+    with open("itw_onehot.p", "wb") as encodedPickle:
+        pickle.dump(idx2word, encodedPickle)
+    final_model.fit_generator(data_generator(batch_size=128), samples_per_epoch=int(samples_per_epoch/times), nb_epoch=epochs,
+                          verbose=1)
+    final_model.save_weights('LSTM_loss.h5')
 
-final_model.fit_generator(data_generator(batch_size=128), samples_per_epoch=samples_per_epoch, nb_epoch=15,
-                          verbose=2)
 
-final_model.save_weights('LSTM_loss.h5')
+def continue_train(epochs, times):
+    global word2idx
+    word2idx = pickle.load(open('wti_onehot.p', 'rb'))
+    global idx2word
+    idx2word = pickle.load(open('itw_onehot.p', 'rb'))
+    final_model.load_weights('LSTM_loss.h5')
+    final_model.fit_generator(data_generator(batch_size=128), samples_per_epoch=int(samples_per_epoch/times), nb_epoch=epochs,
+                              verbose=1)
+    final_model.save_weights('LSTM_loss.h5')
+
+
+def predict_captions(image):
+    word2idx = pickle.load(open('wti_onehot.p', 'rb'))
+    idx2word = pickle.load(open('itw_onehot.p', 'rb'))
+    final_model.load_weights('LSTM_loss.h5')
+    start_word = ["<start>"]
+    while True:
+        par_caps = [word2idx[i] for i in start_word]
+        par_caps = sequence.pad_sequences([par_caps], maxlen=maxSenLen, padding='post')
+        e = encoder.encode(image)
+        preds = final_model.predict([np.array([e]), np.array(par_caps)])
+        word_pred = idx2word[np.argmax(preds[0])]
+        start_word.append(word_pred)
+
+        if word_pred == "<end>" or len(start_word) > maxSenLen:
+            break
+
+    return ' '.join(start_word[1:-1])
+
+
+continue_train(1,2)

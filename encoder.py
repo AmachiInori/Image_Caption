@@ -78,6 +78,3 @@ def encode_total():
         pickle.dump(encodingTest, encodedPickle)
 
     return encodingTrain, encodingTest
-
-
-encode_total()
