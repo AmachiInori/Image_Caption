@@ -1,6 +1,5 @@
 from keras.models import Model
 from keras.applications.inception_v3 import InceptionV3
-import dataset_process
 from keras.optimizers import RMSprop
 from keras.models import Sequential
 from keras.layers.wrappers import Bidirectional
@@ -16,11 +15,11 @@ embedding_size = 300
 
 imageModel = Sequential([
         Dense(embedding_size, input_shape=(2048,), activation='relu'),
-        RepeatVector(dataset_process.maxSenLen)
+        RepeatVector(40)
     ])
 
 captionModel = Sequential([
-        Embedding(dataset_process.vocabularyAmount, embedding_size, input_length=dataset_process.maxSenLen),
+        Embedding(8256, embedding_size, input_length=40),
         LSTM(256, return_sequences=True),
         TimeDistributed(Dense(300))
     ])
@@ -28,7 +27,7 @@ captionModel = Sequential([
 languageModel = Sequential([
         Merge([imageModel, captionModel], mode='concat', concat_axis=1),
         Bidirectional(LSTM(256, return_sequences=False)),
-        Dense(int(dataset_process.vocabularyAmount)),
+        Dense(int(8256)),
         Activation('softmax')
     ])
 

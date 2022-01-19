@@ -28,7 +28,7 @@ class MyFrame1 ( wx.Frame ):
 		self.sec_str = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 900,-1 ), 0 )
 		fgSizer2.Add( self.sec_str, 0, wx.ALL, 5 )
 
-		self.sea_botton = wx.Button( self, wx.ID_ANY, u"Search", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.sea_botton = wx.Button( self, wx.ID_ANY, u"Search", wx.DefaultPosition, wx.Size( 65,-1 ), 0 )
 		fgSizer2.Add( self.sea_botton, 0, wx.ALL, 5 )
 
 		res_boxChoices = []

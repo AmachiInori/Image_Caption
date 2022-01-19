@@ -13,6 +13,8 @@ except FileNotFoundError:
 
 
 def add_images(listOfImages):
+    if len(listOfImages) == 0:
+        return
     for image in listOfImages:
         if not ptcdictionary.get(image, -1) == -1:
             continue
@@ -32,7 +34,7 @@ def delete_images(listOfImages):
     for image in listOfImages:
         if ptcdictionary.get(image, -1) == -1:
             continue
-        caption = predict.get_caption(image)
+        caption = ptcdictionary[image]
         ptcdictionary.pop(image)
         words = caption.split()
         for word in words:

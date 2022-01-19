@@ -13,10 +13,7 @@ word2idx = {val: index for index, val in enumerate(dataset_process.unique)}
 idx2word = {index: val for index, val in enumerate(dataset_process.unique)}
 
 
-samples_per_epoch = 0
-for s in dataset_process.Sent:
-    samples_per_epoch += len(s.split())-1
-
+samples_per_epoch = 383454
 
 def data_generator(batch_size=32):
     partial_caps = []
@@ -51,7 +48,7 @@ def data_generator(batch_size=32):
                 if count >= batch_size:
                     next_words = np.asarray(next_words)
                     images = np.asarray(images)
-                    partial_caps = sequence.pad_sequences(partial_caps, maxlen=dataset_process.maxSenLen, padding='post')
+                    partial_caps = sequence.pad_sequences(partial_caps, maxlen=40, padding='post')
                     yield [[images, partial_caps], next_words]
                     partial_caps = []
                     next_words = []
@@ -88,13 +85,13 @@ def predict_captions(image):
     start_word = ["<start>"]
     while True:
         par_caps = [word2idx[i] for i in start_word]
-        par_caps = sequence.pad_sequences([par_caps], maxlen=dataset_process.maxSenLen, padding='post')
+        par_caps = sequence.pad_sequences([par_caps], maxlen=40, padding='post')
         e = encoder.encode(image)
         preds = my_model.languageModel.predict([np.array([e]), np.array(par_caps)])
         word_pred = idx2word[np.argmax(preds[0])]
         start_word.append(word_pred)
 
-        if word_pred == "<end>" or len(start_word) > dataset_process.maxSenLen:
+        if word_pred == "<end>" or len(start_word) > 40:
             break
 
     return ' '.join(start_word[1:-1])
